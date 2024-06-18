@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Histogram Data Kategori Usia</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Roboto", sans-serif;
+        background-color: #f4f4f9;
+        color: #333;
+      }
+
+      table {
+        border-collapse: collapse;
+        width: 80%;
+        margin: 20px auto;
+        background-color: #fff;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 12px;
+        text-align: left;
+      }
+
+      th {
+        background-color: #007bff;
+        color: #ffffff;
+      }
+
+      button {
+        margin-left: 10px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      button.reset {
+        background-color: #ff0000; /* Merah */
+      }
+
+      #histogram {
+        width: 80%;
+        height: 300px;
+        margin: 20px auto 60px;
+        border: 1px solid #ddd;
+        background-color: #fff;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .bar {
+        transition: height 0.5s ease;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 style="text-align: center; color: #007bff">
+      Histogram Data Kategori Usia
+    </h1>
+    <div style="display: flex; justify-content: center; margin-top: 20px">
+      <label for="ageInput">Masukkan Usia:</label>
+      <input type="number" id="ageInput" min="0" style="margin-left: 10px" />
+      <button onclick="addData()">Tambahkan</button>
+      <button onclick="resetData()" class="reset">Reset</button>
+    </div>
+    <table id="dataTable">
+      <thead>
+        <tr>
+          <th>Fase</th>
+          <th>Banyaknya</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Data akan ditambahkan di sini menggunakan JavaScript -->
+      </tbody>
+    </table>
+    <div id="histogram">
+      <svg width="100%" height="100%"></svg>
+    </div>
+
+    <script>
+      let data = {
+        "Balita (0 - 5 tahun)": { count: 0, color: "blue" },
+        "Anak (6 - 9 tahun)": { count: 0, color: "yellow" },
+        "Remaja (10 - 17 tahun)": { count: 0, color: "green" },
+        "Dewasa (18 - 60 tahun)": { count: 0, color: "orange" },
+        "Lansia (> 60 tahun)": { count: 0, color: "red" },
+      };
+
+      function addData() {
+        let age = parseInt(document.getElementById("ageInput").value);
+        if (age < 0 ) {
+          alert("Usia manusia tidak ada yang negatif");
+          return;
+        }
+        if (age >= 0 && age <= 5) {
+          data["Balita (0 - 5 tahun)"].count++;
+        } else if (age >= 6 && age <= 9) {
+          data["Anak (6 - 9 tahun)"].count++;
+        } else if (age >= 10 && age <= 17) {
+          data["Remaja (10 - 17 tahun)"].count++;
+        } else if (age >= 18 && age <= 60) {
+          data["Dewasa (18 - 60 tahun)"].count++;
+        } else  {
+          data["Lansia (> 60 tahun)"].count++;
+        }
+        updateTable();
+        drawHistogram();
+      }
+
+      function updateTable() {
+        let tableBody = document.querySelector("#dataTable tbody");
+        tableBody.innerHTML = "";
+        for (let phase in data) {
+          let row = `<tr><td>${phase}</td><td>${data[phase].count}</td></tr>`;
+          tableBody.innerHTML += row;
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const ageInput = document.getElementById("ageInput");
+        ageInput.addEventListener("keypress", function (event) {
+          if (event.key === "Enter") {
+            addData();
+          }
+        });
+      });
+
+      function drawHistogram() {
+        const svg = document.querySelector("#histogram svg");
+        svg.innerHTML = "";
+        const barWidth = 50;
+        const barSpacing = 30; // Ditingkatkan dari 20 ke 30 untuk jarak yang lebih besar
+        const svgWidth = svg.clientWidth;
+        const svgHeight = svg.clientHeight - 40; // Tinggi total dari elemen SVG, dikurangi 40px untuk memberi ruang pada label.
+        const maxCount = Math.max(...Object.values(data).map((d) => d.count)); // Nilai maksimum dari jumlah data untuk semua fase.
+        const scale = maxCount > 0 ? (svgHeight - 30) / (maxCount * 10) : 0; // Skala untuk menghitung tinggi batang, mengurangi 30px untuk label.
+
+        let x =
+          (svgWidth - (barWidth + barSpacing) * Object.keys(data).length) / 2; // Menghitung posisi x awal untuk batang pertama.
+
+        for (let phase in data) {
+          // Loop melalui setiap fase dalam data.
+          const barHeight = data[phase].count * 10 * scale; // Menghitung tinggi batang berdasarkan jumlah data dan skala.
+          const rect = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "rect"
+          ); // Membuat elemen 'rect' untuk batang.
+          rect.setAttribute("x", x); // Menetapkan posisi x batang.
+          rect.setAttribute("y", svgHeight - barHeight); // Menetapkan posisi y batang, dihitung dari bawah SVG.
+          rect.setAttribute("width", barWidth); // Menetapkan lebar batang.
+          rect.setAttribute("height", barHeight); // Menetapkan tinggi batang.
+          rect.setAttribute("fill", data[phase].color); // Menetapkan warna batang.
+          svg.appendChild(rect); // Menambahkan batang ke dalam SVG.
+
+          // Membuat teks frekuensi di sisi kiri batang
+          const text = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "text"
+          ); // Membuat elemen 'text' untuk teks frekuensi.
+          text.setAttribute("x", x - 5); // Menetapkan posisi x teks, 5px ke kiri dari batang.
+          text.setAttribute("y", svgHeight - barHeight + barHeight / 2); // Menetapkan posisi y teks, di tengah tinggi batang.
+          text.setAttribute("text-anchor", "end"); // Menyelaraskan teks ke kanan.
+          text.setAttribute("fill", "#000"); // Warna teks.
+          text.textContent = data[phase].count; // Isi teks dengan jumlah data.
+          svg.appendChild(text); // Menambahkan teks ke dalam SVG.
+
+          // Menambahkan label fase di bawah batang
+          const label = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "text"
+          ); // Membuat elemen 'text' untuk label fase.
+          label.setAttribute("x", x + barWidth / 2); // Menetapkan posisi x label, di tengah batang.
+          label.setAttribute("y", svgHeight + 30); // Menetapkan posisi y label, 30px di bawah batang.
+          label.setAttribute("text-anchor", "middle"); // Menyelaraskan teks ke tengah.
+          label.setAttribute("fill", "#000"); // Warna teks.
+          label.textContent = phase.split(" ")[0]; // Isi teks dengan nama fase, mengambil bagian pertama dari string fase.
+          svg.appendChild(label); // Menambahkan label ke dalam SVG.
+
+          x += barWidth + barSpacing; // Memperbarui posisi x untuk batang berikutnya.
+        }
+      }
+
+      function resetData() {
+        for (let key in data) {
+          data[key].count = 0;
+        }
+        updateTable();
+        drawHistogram();
+      }
+    </script>
+  </body>
+</html>
